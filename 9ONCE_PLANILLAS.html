@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Minutas Digitales | 9Once Seguridad Ltda</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --crimson:#a82030; --crimson2:#8b1a2e; --crimson-dark:#4a0a15; --gold:#c8a84b;
+  --bg:#0b0b0d; --surface:#141417; --surface2:#1c1c20; --surface3:#26262b;
+  --border:#2a2a30; --text:#f5f5f5; --silver:#9a9aa2; --success:#3ecf8e; --warning:#f5a623; --danger:#e0525a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(circle at 15% 10%,rgba(168,32,48,.15),transparent 45%),radial-gradient(circle at 85% 90%,rgba(168,32,48,.10),transparent 50%);}
+.hidden{display:none!important}
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tb-brand{font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:1px;font-size:15px}
+.tb-brand span{color:var(--crimson)}
+.tb-user{font-size:11px;color:var(--silver);text-align:right;line-height:1.5}
+.tb-user b{color:var(--gold)}
+.btn{font-family:'Oswald',sans-serif;letter-spacing:1px;text-transform:uppercase;font-size:11px;
+  border:none;border-radius:7px;padding:9px 16px;cursor:pointer;transition:.15s;font-weight:600}
+.btn-primary{background:linear-gradient(135deg,var(--crimson),var(--crimson2));color:#fff}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn-ghost{background:var(--surface2);border:1px solid var(--border);color:var(--silver)}
+.btn-ghost:hover{color:#fff;border-color:var(--crimson)}
+.btn-success{background:var(--success);color:#06251a}
+.btn-danger{background:var(--danger);color:#2a0608}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;z-index:1}
+.login-card{width:100%;max-width:380px;background:var(--surface);border:1px solid rgba(168,32,48,.35);
+  border-radius:14px;padding:36px 30px;box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center}
+.login-card .ico{width:62px;height:62px;margin:0 auto 16px;border-radius:50%;
+  background:linear-gradient(135deg,var(--crimson),var(--crimson-dark));display:flex;align-items:center;justify-content:center;font-size:28px;
+  box-shadow:0 0 30px rgba(168,32,48,.45)}
+.login-card h1{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:3px;margin-bottom:2px}
+.login-card h1 span{color:var(--crimson)}
+.login-card .sub{font-size:.78rem;color:var(--silver);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:26px}
+.field{text-align:left;margin-bottom:16px}
+.field label{display:block;font-family:'Oswald',sans-serif;font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--silver);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:12px 13px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:6px;color:#fff;font-size:.92rem;font-family:'Barlow',sans-serif}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--crimson)}
+.err{margin-top:12px;font-size:.82rem;color:#ff9a9a;min-height:16px}
+/* HOME / DASHBOARD */
+.content{max-width:760px;margin:0 auto;padding:18px}
+.home-hdr{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:18px}
+.home-hdr h2{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px}
+.home-hdr h2 span{color:var(--gold)}
+.home-hdr p{font-size:.82rem;color:var(--silver);margin-top:4px}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.menu-grid{grid-template-columns:1fr}}
+.menu-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;
+  cursor:pointer;transition:.15s;text-align:center}
+.menu-card:hover{border-color:var(--crimson);transform:translateY(-2px)}
+.menu-card .mi{font-size:34px;margin-bottom:10px}
+.menu-card h3{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:1px;margin-bottom:4px}
+.menu-card p{font-size:.78rem;color:var(--silver)}
+.menu-card.full{grid-column:1/-1}
+/* FORM */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px}
+.form-card h3{font-family:'Oswald',sans-serif;font-size:.78rem;letter-spacing:3px;text-transform:uppercase;color:var(--crimson);
+  margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.form-card h3::after{content:'';flex:1;height:1px;background:var(--border)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.row2{grid-template-columns:1fr}}
+.check-list{display:flex;flex-direction:column;gap:8px}
+.check-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:8px;font-size:.88rem}
+.check-item input{width:18px;height:18px;accent-color:var(--crimson)}
+.eval-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:.86rem;flex-wrap:wrap}
+.eval-opts{display:flex;gap:14px;font-size:.8rem}
+.eval-opts label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.eval-opts input{accent-color:var(--crimson)}
+/* VEHICULAR TABLE */
+.veh-row{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.veh-row .row2{margin-bottom:10px}
+.veh-photo-box{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.veh-photo-box img{width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border)}
+.veh-del{margin-top:8px}
+/* SIGNATURE */
+.sig-wrap{border:1px dashed var(--border);border-radius:8px;background:#fff;touch-action:none}
+.sig-wrap canvas{display:block;width:100%;height:140px;cursor:crosshair}
+/* HISTORY */
+.hist-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;font-size:.85rem}
+.hist-item .ht{font-weight:600}
+.hist-item .hs{font-size:.72rem;color:var(--silver)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--surface3);border:1px solid var(--crimson);border-radius:8px;padding:12px 20px;
+  font-size:.85rem;z-index:999;transition:.25s;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="ico">📋</div>
+    <h1>Minutas <span>Digitales</span></h1>
+    <div class="sub">9Once Seguridad Ltda</div>
+    <form id="loginForm" onsubmit="return doLogin(event)">
+      <div class="field"><label>Usuario (puesto)</label><input type="text" id="lUser" autocomplete="username" required></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="lPass" autocomplete="current-password" required></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:13px">Ingresar</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="appWrap" class="hidden">
+  <div class="topbar">
+    <div class="tb-brand">9<span>ONCE</span> · MINUTAS</div>
+    <div class="tb-user"><b id="tbPuesto">—</b><br><span id="tbCodigo">—</span></div>
+    <button class="btn btn-ghost" onclick="logout()">Salir</button>
+  </div>
+
+  <div class="content">
+
+    <!-- HOME -->
+    <div id="viewHome">
+      <div class="home-hdr">
+        <h2>Puesto <span id="homePuesto">—</span></h2>
+        <p id="homeFecha">—</p>
+      </div>
+      <div class="menu-grid">
+        <div class="menu-card" onclick="goView('servicio')">
+          <div class="mi">🪪</div><h3>Minuta de Servicio</h3><p>Minuta del vigilante por turno</p>
+        </div>
+        <div class="menu-card" onclick="goView('supervision')">
+          <div class="mi">🛡️</div><h3>Minuta de Supervisión</h3><p>Visita y evaluación del supervisor</p>
+        </div>
+        <div class="menu-card full" onclick="goView('administracion')">
+          <div class="mi">🗂️</div><h3>Minuta de Administración del Puesto</h3><p>Entrega/recibo de turno, inventario y novedades administrativas</p>
+        </div>
+        <div class="menu-card" onclick="goView('vehicular')">
+          <div class="mi">🚗</div><h3>Planilla Vehicular</h3><p>Ronda de parqueadero: parqueadero, placa, estado y fotos</p>
+        </div>
+        <div class="menu-card" onclick="goView('visitantes')">
+          <div class="mi">🧾</div><h3>Planilla de Registro de Visitantes</h3><p>Control de ingreso y salida de visitantes</p>
+        </div>
+        <div class="menu-card full" onclick="goView('historial')">
+          <div class="mi">📂</div><h3>Historial de Minutas</h3><p>Consultar y descargar PDFs guardados en este dispositivo</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PLANILLA DE SERVICIO ═══ -->
+    <div id="viewServicio" class="hidden">
+      <div class="home-hdr"><h2>Minuta de <span>Servicio</span></h2><p>Minuta diaria del vigilante</p></div>
+      <div class="form-card">
+        <h3>📋 Datos Generales</h3>
+        <div class="row2">
+          <div class="field"><label>Vigilante</label><input type="text" id="svNombre" placeholder="Nombre completo"></div>
+          <div class="field"><label>Cédula</label><input type="text" id="svCedula" placeholder="N° de identificación"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Fecha</label><input type="date" id="svFecha"></div>
+          <div class="field"><label>Turno</label>
+            <select id="svTurno"><option>Día (06:00-18:00)</option><option>Noche (18:00-06:00)</option></select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Hora de Entrada</label><input type="time" id="svHoraEntrada"></div>
+          <div class="field"><label>Hora de Salida</label><input type="time" id="svHoraSalida"></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>🎒 Elementos de Dotación Recibidos</h3>
+        <div class="check-list">
+          <label class="check-item"><input type="checkbox" id="svElemRadio">Radio de comunicaciones</label>
+          <label class="check-item"><input type="checkbox" id="svElemLinterna">Linterna</label>
+          <label class="check-item"><input type="checkbox" id="svElemChaleco">Chaleco / uniforme completo</label>
+          <label class="check-item"><input type="checkbox" id="svElemCarnet">Carné / credencial</label>
+          <label class="check-item"><input type="checkbox" id="svElemArma">Arma de dotación (si aplica)</label>
+          <label class="check-item"><input type="checkbox" id="svElemLlaves">Juego de llaves del puesto</label>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>📝 Novedades del Turno</h3>
+        <div class="field"><label>Describa las novedades, visitantes, llamadas o situaciones presentadas</label>
+          <textarea id="svNovedades" rows="5" placeholder="Sin novedad / describir lo ocurrido durante el turno…"></textarea>
+        </div>
+        <div class="field"><label>Observaciones / Pendientes para el relevo</label>
+          <textarea id="svObs" rows="3" placeholder="Información a entregar al siguiente turno…"></textarea>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>✍️ Firma del Vigilante</h3>
+        <div class="sig-wrap"><canvas id="svFirma"></canvas></div>
+        <button class="btn btn-ghost" style="margin-top:10px" onclick="clearSig('svFirma')">Limpiar Firma</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:30px">
+        <button class="btn btn-ghost" style="flex:1" onclick="goView('home')">← Volver</button>
+        <button class="btn btn-primary" style="flex:2" onclick="genServicioPDF()">📄 Generar PDF de Minuta</button>
+      </div>
+    </div>
+
+    <!-- ═══ PLANILLA DE SUPERVISIÓN ═══ -->
+    <div id="viewSupervision" class="hidden">
+      <div class="home-hdr"><h2>Minuta de <span>Supervisión</span></h2><p>Visita de control al puesto</p></div>
+      <div class="form-card">
+        <h3>📋 Datos Generales</h3>
+        <div class="row2">
+          <div class="field"><label>Supervisor</label><input type="text" id="spNombre" placeholder="Nombre completo"></div>
+          <div class="field"><label>Cédula</label><input type="text" id="spCedula" placeholder="N° de identificación"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Fecha</label><input type="date" id="spFecha"></div>
+          <div class="field"><label>Hora de Visita</label><input type="time" id="spHora"></div>
+        </div>
+        <div class="field"><label>Vigilante encontrado en el puesto</label><input type="text" id="spVigilante" placeholder="Nombre del vigilante de turno"></div>
+      </div>
+      <div class="form-card">
+        <h3>✅ Verificación del Puesto</h3>
+        <div class="check-list" id="spChecklist"></div>
+      </div>
+      <div class="form-card">
+        <h3>📝 Observaciones</h3>
+        <div class="field"><label>Hallazgos, recomendaciones o correctivos aplicados</label>
+          <textarea id="spObs" rows="5" placeholder="Describa la visita…"></textarea>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>✍️ Firma del Supervisor</h3>
+        <div class="sig-wrap"><canvas id="spFirma"></canvas></div>
+        <button class="btn btn-ghost" style="margin-top:10px" onclick="clearSig('spFirma')">Limpiar Firma</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:30px">
+        <button class="btn btn-ghost" style="flex:1" onclick="goView('home')">← Volver</button>
+        <button class="btn btn-primary" style="flex:2" onclick="genSupervisionPDF()">📄 Generar PDF de Supervisión</button>
+      </div>
+    </div>
+
+    <!-- ═══ PLANILLA VEHICULAR ═══ -->
+    <div id="viewVehicular" class="hidden">
+      <div class="home-hdr"><h2>Planilla <span>Vehicular</span></h2><p>Ronda de parqueadero del turno</p></div>
+      <div class="form-card">
+        <h3>📋 Datos Generales</h3>
+        <div class="row2">
+          <div class="field"><label>Vigilante</label><input type="text" id="vhNombre" placeholder="Nombre completo"></div>
+          <div class="field"><label>Fecha</label><input type="date" id="vhFecha"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Hora de Ronda</label><input type="time" id="vhHora"></div>
+          <div class="field"><label>Zona / Sótano / Nivel</label><input type="text" id="vhZona" placeholder="Ej: Sótano 1"></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>🚗 Vehículos Verificados</h3>
+        <div id="vhRows"></div>
+        <button class="btn btn-ghost" onclick="addVehRow()">+ Agregar Vehículo</button>
+      </div>
+      <div class="form-card">
+        <h3>✍️ Firma del Vigilante</h3>
+        <div class="sig-wrap"><canvas id="vhFirma"></canvas></div>
+        <button class="btn btn-ghost" style="margin-top:10px" onclick="clearSig('vhFirma')">Limpiar Firma</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:30px">
+        <button class="btn btn-ghost" style="flex:1" onclick="goView('home')">← Volver</button>
+        <button class="btn btn-primary" style="flex:2" onclick="genVehicularPDF()">📄 Generar PDF de Revista</button>
+      </div>
+    </div>
+
+    <!-- ═══ MINUTA DE ADMINISTRACIÓN DEL PUESTO ═══ -->
+    <div id="viewAdministracion" class="hidden">
+      <div class="home-hdr"><h2>Minuta de <span>Administración</span></h2><p>Entrega/recibo de turno y administración del puesto</p></div>
+      <div class="form-card">
+        <h3>📋 Datos Generales</h3>
+        <div class="row2">
+          <div class="field"><label>Vigilante que entrega</label><input type="text" id="adEntrega" placeholder="Nombre completo"></div>
+          <div class="field"><label>Vigilante que recibe</label><input type="text" id="adRecibe" placeholder="Nombre completo"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Fecha</label><input type="date" id="adFecha"></div>
+          <div class="field"><label>Hora de Entrega</label><input type="time" id="adHora"></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>📦 Inventario / Elementos del Puesto</h3>
+        <div id="adRows"></div>
+        <button class="btn btn-ghost" onclick="addAdminRow()">+ Agregar Elemento</button>
+      </div>
+      <div class="form-card">
+        <h3>📨 Comunicados / Pendientes Administrativos</h3>
+        <div class="field"><label>Comunicados recibidos, llamadas de la administración, pendientes con copropiedad/cliente</label>
+          <textarea id="adComunicados" rows="4" placeholder="Sin pendientes…"></textarea>
+        </div>
+        <div class="field"><label>Observaciones Generales</label>
+          <textarea id="adObs" rows="3" placeholder="Otras observaciones del puesto…"></textarea>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>✍️ Firmas</h3>
+        <div class="row2">
+          <div>
+            <label class="fl" style="display:block;font-size:.72rem;color:var(--silver);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">Quien Entrega</label>
+            <div class="sig-wrap"><canvas id="adFirmaEntrega"></canvas></div>
+            <button class="btn btn-ghost" style="margin-top:10px" onclick="clearSig('adFirmaEntrega')">Limpiar</button>
+          </div>
+          <div>
+            <label class="fl" style="display:block;font-size:.72rem;color:var(--silver);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">Quien Recibe</label>
+            <div class="sig-wrap"><canvas id="adFirmaRecibe"></canvas></div>
+            <button class="btn btn-ghost" style="margin-top:10px" onclick="clearSig('adFirmaRecibe')">Limpiar</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:30px">
+        <button class="btn btn-ghost" style="flex:1" onclick="goView('home')">← Volver</button>
+        <button class="btn btn-primary" style="flex:2" onclick="genAdministracionPDF()">📄 Generar PDF de Minuta</button>
+      </div>
+    </div>
+
+    <!-- ═══ PLANILLA DE REGISTRO DE VISITANTES ═══ -->
+    <div id="viewVisitantes" class="hidden">
+      <div class="home-hdr"><h2>Registro de <span>Visitantes</span></h2><p>Control de ingreso y salida de visitantes</p></div>
+      <div class="form-card">
+        <h3>📋 Datos Generales</h3>
+        <div class="row2">
+          <div class="field"><label>Vigilante</label><input type="text" id="vsNombre" placeholder="Nombre completo"></div>
+          <div class="field"><label>Fecha</label><input type="date" id="vsFecha"></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>🧾 Visitantes Registrados</h3>
+        <div id="vsRows"></div>
+        <button class="btn btn-ghost" onclick="addVisitanteRow()">+ Agregar Visitante</button>
+      </div>
+      <div class="form-card">
+        <h3>✍️ Firma del Vigilante</h3>
+        <div class="sig-wrap"><canvas id="vsFirma"></canvas></div>
+        <button class="btn btn-ghost" style="margin-top:10px" onclick="clearSig('vsFirma')">Limpiar Firma</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:30px">
+        <button class="btn btn-ghost" style="flex:1" onclick="goView('home')">← Volver</button>
+        <button class="btn btn-primary" style="flex:2" onclick="genVisitantesPDF()">📄 Generar PDF de Registro</button>
+      </div>
+    </div>
+
+    <!-- ═══ HISTORIAL ═══ -->
+    <div id="viewHistorial" class="hidden">
+      <div class="home-hdr"><h2>Historial de <span>Minutas</span></h2><p>Guardadas en este dispositivo (este puesto)</p></div>
+      <div class="form-card"><div id="histList"></div></div>
+      <button class="btn btn-ghost" style="margin-bottom:30px" onclick="goView('home')">← Volver</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// USUARIOS POR PUESTO (uno por cada Apolo / puesto)
+// Usuario y contraseña genéricos para iniciar operación.
+// El administrador puede cambiar las contraseñas editando este objeto.
+// ══════════════════════════════════════════════
+const PUESTOS_USERS = {
+  apolo5:   {pass:'9once2026', codigo:'APOLO 5',  lugar:'Libertadores'},
+  apolo28:  {pass:'9once2026', codigo:'APOLO 28', lugar:'Soy 21'},
+  apolo08:  {pass:'9once2026', codigo:'APOLO 08', lugar:'Catalina'},
+  apolo25:  {pass:'9once2026', codigo:'APOLO 25', lugar:'Cabañas Norte'},
+  apolo09:  {pass:'9once2026', codigo:'APOLO 09', lugar:'Chocitas 2'},
+  apolo23:  {pass:'9once2026', codigo:'APOLO 23', lugar:'Vehicular'},
+  apolo18:  {pass:'9once2026', codigo:'APOLO 18', lugar:'Senderos Sector 1'},
+  apolo19:  {pass:'9once2026', codigo:'APOLO 19', lugar:'Senderos Sector 2'},
+  apolo20:  {pass:'9once2026', codigo:'APOLO 20', lugar:'Senderos Sector 3'},
+  apolo21:  {pass:'9once2026', codigo:'APOLO 21', lugar:'Senderos Sector 4'},
+  apolo22:  {pass:'9once2026', codigo:'APOLO 22', lugar:'Apolo 22'},
+  apolo17:  {pass:'9once2026', codigo:'APOLO 17', lugar:'Parque de las Flores 1'},
+  apolo11:  {pass:'9once2026', codigo:'APOLO 11', lugar:'Apolo 11'},
+  apolo14:  {pass:'9once2026', codigo:'APOLO 14', lugar:'Apolo 14'},
+  apolo15:  {pass:'9once2026', codigo:'APOLO 15', lugar:'Pontevedra'},
+  apolo03:  {pass:'9once2026', codigo:'APOLO 03', lugar:'Universidad Nacional'},
+  bmw:      {pass:'9once2026', codigo:'BMW',      lugar:'BMW'},
+  apolo34:  {pass:'9once2026', codigo:'APOLO 34', lugar:'Apolo 34'},
+  apolo04:  {pass:'9once2026', codigo:'APOLO 04', lugar:'Apolo 04'},
+  apolo10:  {pass:'9once2026', codigo:'APOLO 10', lugar:'Madelena'},
+  apolo16:  {pass:'9once2026', codigo:'APOLO.16', lugar:'Franja Amarillas'},
+  apolo31:  {pass:'9once2026', codigo:'APOLO 31', lugar:'Apolo 31'},
+  apolo07:  {pass:'9once2026', codigo:'APOLO 07', lugar:'Apolo 07'},
+  apolo12:  {pass:'9once2026', codigo:'APOLO 12', lugar:'Apolo 12'},
+  apolo13:  {pass:'9once2026', codigo:'APOLO 13', lugar:'Apolo 13'},
+  admin:    {pass:'legion2026', codigo:'ADMIN', lugar:'Administración'},
+};
+
+const SUP_CHECKLIST = [
+  'Presentación personal y uniforme completo',
+  'Puntualidad en el cambio de turno',
+  'Elementos de dotación completos (radio, linterna, carné)',
+  'Conocimiento de la consigna del puesto',
+  'Aseo y orden del puesto de trabajo',
+  'Libro / minuta digital diligenciada al día',
+  'Cumple rondas y verificaciones programadas',
+];
+
+let currentUser = null;
+
+function toast(msg){
+  const el=document.getElementById('toastEl');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ══ AUTH ══
+function doLogin(e){
+  e.preventDefault();
+  const u=document.getElementById('lUser').value.trim().toLowerCase();
+  const p=document.getElementById('lPass').value;
+  const data=PUESTOS_USERS[u];
+  if(!data||data.pass!==p){
+    document.getElementById('loginErr').textContent='Usuario o contraseña incorrectos';
+    return false;
+  }
+  currentUser={username:u,...data};
+  sessionStorage.setItem('once_minutas_user',u);
+  startApp();
+  return false;
+}
+function logout(){
+  sessionStorage.removeItem('once_minutas_user');
+  currentUser=null;
+  document.getElementById('appWrap').classList.add('hidden');
+  document.getElementById('loginWrap').classList.remove('hidden');
+  document.getElementById('loginForm').reset();
+  document.getElementById('loginErr').textContent='';
+}
+function startApp(){
+  document.getElementById('loginWrap').classList.add('hidden');
+  document.getElementById('appWrap').classList.remove('hidden');
+  document.getElementById('tbPuesto').textContent=currentUser.lugar;
+  document.getElementById('tbCodigo').textContent=currentUser.codigo;
+  document.getElementById('homePuesto').textContent=currentUser.lugar+' ('+currentUser.codigo+')';
+  const hoy=new Date();
+  document.getElementById('homeFecha').textContent='Hoy: '+hoy.toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // pre-fill dates
+  const isoDate=hoy.toISOString().slice(0,10);
+  ['svFecha','spFecha','vhFecha','adFecha','vsFecha'].forEach(id=>{const el=document.getElementById(id); if(el) el.value=isoDate;});
+  buildSupChecklist();
+  if(!document.getElementById('vhRows').children.length) addVehRow();
+  if(!document.getElementById('adRows').children.length){addAdminRow();addAdminRow();addAdminRow();}
+  if(!document.getElementById('vsRows').children.length) addVisitanteRow();
+  goView('home');
+  setTimeout(()=>['svFirma','spFirma','vhFirma','adFirmaEntrega','adFirmaRecibe','vsFirma'].forEach(initSig),100);
+}
+
+// auto-login if session exists
+window.addEventListener('load',()=>{
+  const u=sessionStorage.getItem('once_minutas_user');
+  if(u && PUESTOS_USERS[u]){ currentUser={username:u,...PUESTOS_USERS[u]}; startApp(); }
+});
+
+// ══ NAVEGACIÓN ══
+function goView(name){
+  ['Home','Servicio','Supervision','Administracion','Vehicular','Visitantes','Historial'].forEach(v=>{
+    document.getElementById('view'+v).classList.toggle('hidden', v.toLowerCase()!==name);
+  });
+  if(name==='historial') renderHistorial();
+  window.scrollTo(0,0);
+}
+
+// ══ CHECKLIST SUPERVISIÓN ══
+function buildSupChecklist(){
+  const c=document.getElementById('spChecklist');
+  c.innerHTML=SUP_CHECKLIST.map((label,i)=>`
+    <div class="eval-row">
+      <span>${label}</span>
+      <div class="eval-opts">
+        <label><input type="radio" name="sp_chk_${i}" value="Bien" checked>Bien</label>
+        <label><input type="radio" name="sp_chk_${i}" value="Regular">Regular</label>
+        <label><input type="radio" name="sp_chk_${i}" value="Malo">Malo</label>
+      </div>
+    </div>`).join('');
+}
+
+// ══ FIRMA (canvas) ══
+const sigState={};
+function initSig(id){
+  const canvas=document.getElementById(id);
+  const wrap=canvas.parentElement;
+  const ratio=window.devicePixelRatio||1;
+  canvas.width=wrap.clientWidth*ratio;
+  canvas.height=140*ratio;
+  const ctx=canvas.getContext('2d');
+  ctx.scale(ratio,ratio);
+  ctx.lineWidth=2; ctx.lineCap='round'; ctx.strokeStyle='#111';
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  sigState[id]={drawing:false,ctx,empty:true};
+
+  const pos=(e)=>{
+    const r=canvas.getBoundingClientRect();
+    const t=e.touches?e.touches[0]:e;
+    return {x:t.clientX-r.left, y:t.clientY-r.top};
+  };
+  const start=(e)=>{e.preventDefault();sigState[id].drawing=true;sigState[id].empty=false;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);};
+  const move=(e)=>{if(!sigState[id].drawing)return;e.preventDefault();const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();};
+  const end=()=>{sigState[id].drawing=false;};
+  canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);
+  window.addEventListener('mouseup',end);
+  canvas.addEventListener('touchstart',start,{passive:false});
+  canvas.addEventListener('touchmove',move,{passive:false});
+  canvas.addEventListener('touchend',end);
+}
+function clearSig(id){
+  const canvas=document.getElementById(id);
+  const ctx=sigState[id].ctx;
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  sigState[id].empty=true;
+}
+function getSigDataURL(id){
+  if(!sigState[id]||sigState[id].empty) return null;
+  return document.getElementById(id).toDataURL('image/png');
+}
+
+// ══ FILA VEHICULAR ══
+let vehRowCount=0;
+function addVehRow(){
+  vehRowCount++;
+  const id='vehrow_'+vehRowCount;
+  const div=document.createElement('div');
+  div.className='veh-row';
+  div.id=id;
+  div.innerHTML=`
+    <div class="row2">
+      <div class="field"><label>N° Parqueadero</label><input type="text" placeholder="Ej: 105"></div>
+      <div class="field"><label>Placa</label><input type="text" placeholder="Ej: ABC123" style="text-transform:uppercase">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Estado del Vehículo</label>
+        <select class="vh-estado"><option>Bien</option><option>Novedad / Daño</option><option>No se encuentra</option></select>
+      </div>
+      <div class="field"><label>Observaciones</label><input type="text" placeholder="Detalles de la novedad…"></div>
+    </div>
+    <div class="field"><label>Foto de la Novedad (opcional)</label>
+      <div class="veh-photo-box">
+        <input type="file" accept="image/*" capture="environment" onchange="handleVehPhoto(this)">
+        <img class="veh-prev hidden" alt="preview">
+      </div>
+    </div>
+    <button class="btn btn-danger veh-del" onclick="document.getElementById('${id}').remove()">🗑 Eliminar Vehículo</button>
+  `;
+  document.getElementById('vhRows').appendChild(div);
+}
+function handleVehPhoto(input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=(e)=>{
+    const img=input.parentElement.querySelector('.veh-prev');
+    img.src=e.target.result;
+    img.classList.remove('hidden');
+    input.dataset.photo=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══ PDF: ENCABEZADO COMÚN ══
+function pdfHeader(doc,title){
+  doc.setFillColor(20,20,23);
+  doc.rect(0,0,210,28,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(14);
+  doc.text('9ONCE SEGURIDAD LTDA',12,12);
+  doc.setFontSize(10);
+  doc.setTextColor(200,168,75);
+  doc.text(title,12,20);
+  doc.setTextColor(150,150,155);
+  doc.setFontSize(8);
+  doc.text('Puesto: '+currentUser.lugar+' ('+currentUser.codigo+')',140,12);
+  doc.text('Generado: '+new Date().toLocaleString('es-CO'),140,18);
+  doc.setTextColor(20,20,23);
+  return 36;
+}
+function pdfField(doc,y,label,value){
+  doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text(label+':',12,y);
+  doc.setFont('helvetica','normal');
+  doc.text(String(value||'—'),50,y);
+  return y+7;
+}
+function pdfSectionTitle(doc,y,text){
+  doc.setFillColor(168,32,48);
+  doc.rect(12,y-4.5,186,6,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(9.5);
+  doc.text(text,14,y);
+  doc.setTextColor(20,20,23);
+  return y+9;
+}
+function pdfWrapText(doc,y,text,maxWidth){
+  doc.setFont('helvetica','normal');doc.setFontSize(9);
+  const lines=doc.splitTextToSize(text||'Sin novedad.',maxWidth);
+  lines.forEach(l=>{doc.text(l,12,y);y+=5;});
+  return y+3;
+}
+function pdfSignature(doc,y,label,sigId){
+  doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text(label,12,y);
+  const sig=getSigDataURL(sigId);
+  if(sig){ doc.addImage(sig,'PNG',12,y+3,60,22); }
+  doc.line(12,y+27,80,y+27);
+  return y+33;
+}
+function checkPageBreak(doc,y,needed){
+  if(y+needed>285){ doc.addPage(); return 18; }
+  return y;
+}
+
+// ══ GUARDAR EN HISTORIAL ══
+function saveHistory(tipo,meta){
+  const key='once_minutas_'+currentUser.username;
+  const list=JSON.parse(localStorage.getItem(key)||'[]');
+  list.unshift({tipo,fecha:new Date().toISOString(),meta});
+  localStorage.setItem(key,JSON.stringify(list.slice(0,100)));
+}
+function renderHistorial(){
+  const key='once_minutas_'+currentUser.username;
+  const list=JSON.parse(localStorage.getItem(key)||'[]');
+  const cont=document.getElementById('histList');
+  if(!list.length){cont.innerHTML='<div style="text-align:center;color:var(--silver);padding:20px;font-size:.85rem">Aún no hay minutas generadas en este dispositivo.</div>';return;}
+  cont.innerHTML=list.map(h=>`
+    <div class="hist-item">
+      <div><div class="ht">${h.tipo}</div><div class="hs">${h.meta}</div></div>
+      <div class="hs">${new Date(h.fecha).toLocaleString('es-CO')}</div>
+    </div>`).join('');
+}
+
+// ══ GENERAR PDF: SERVICIO ══
+function genServicioPDF(){
+  const nombre=document.getElementById('svNombre').value.trim();
+  if(!nombre){toast('⚠ Ingresa el nombre del vigilante');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'PLANILLA DE SERVICIO - VIGILANTE');
+  y=pdfSectionTitle(doc,y,'DATOS GENERALES');
+  y=pdfField(doc,y,'Vigilante',nombre);
+  y=pdfField(doc,y,'Cédula',document.getElementById('svCedula').value);
+  y=pdfField(doc,y,'Fecha',document.getElementById('svFecha').value);
+  y=pdfField(doc,y,'Turno',document.getElementById('svTurno').value);
+  y=pdfField(doc,y,'Hora Entrada',document.getElementById('svHoraEntrada').value);
+  y=pdfField(doc,y,'Hora Salida',document.getElementById('svHoraSalida').value);
+  y+=2;
+  y=pdfSectionTitle(doc,y,'ELEMENTOS DE DOTACIÓN RECIBIDOS');
+  const elems=[['svElemRadio','Radio de comunicaciones'],['svElemLinterna','Linterna'],['svElemChaleco','Chaleco / uniforme completo'],['svElemCarnet','Carné / credencial'],['svElemArma','Arma de dotación'],['svElemLlaves','Juego de llaves del puesto']];
+  doc.setFontSize(9);doc.setFont('helvetica','normal');
+  elems.forEach(([id,label])=>{
+    const checked=document.getElementById(id).checked;
+    doc.text((checked?'[X] ':'[ ] ')+label,12,y); y+=6;
+  });
+  y+=2;
+  y=pdfSectionTitle(doc,y,'NOVEDADES DEL TURNO');
+  y=pdfWrapText(doc,y,document.getElementById('svNovedades').value,186);
+  y=checkPageBreak(doc,y,30);
+  y=pdfSectionTitle(doc,y,'OBSERVACIONES / PENDIENTES PARA EL RELEVO');
+  y=pdfWrapText(doc,y,document.getElementById('svObs').value,186);
+  y=checkPageBreak(doc,y,40);
+  y+=4;
+  pdfSignature(doc,y,'Firma del Vigilante',svFirma_id());
+  const fname=`Servicio_${currentUser.codigo.replace(/\s/g,'')}_${document.getElementById('svFecha').value}.pdf`;
+  doc.save(fname);
+  saveHistory('Planilla de Servicio',nombre+' · '+document.getElementById('svFecha').value+' · '+document.getElementById('svTurno').value);
+  toast('✅ PDF generado: '+fname);
+}
+function svFirma_id(){return 'svFirma';}
+
+// ══ GENERAR PDF: SUPERVISIÓN ══
+function genSupervisionPDF(){
+  const nombre=document.getElementById('spNombre').value.trim();
+  if(!nombre){toast('⚠ Ingresa el nombre del supervisor');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'PLANILLA DE SUPERVISIÓN');
+  y=pdfSectionTitle(doc,y,'DATOS GENERALES');
+  y=pdfField(doc,y,'Supervisor',nombre);
+  y=pdfField(doc,y,'Cédula',document.getElementById('spCedula').value);
+  y=pdfField(doc,y,'Fecha',document.getElementById('spFecha').value);
+  y=pdfField(doc,y,'Hora de Visita',document.getElementById('spHora').value);
+  y=pdfField(doc,y,'Vigilante en Puesto',document.getElementById('spVigilante').value);
+  y+=2;
+  y=pdfSectionTitle(doc,y,'VERIFICACIÓN DEL PUESTO');
+  doc.setFontSize(9);
+  SUP_CHECKLIST.forEach((label,i)=>{
+    const sel=document.querySelector(`input[name="sp_chk_${i}"]:checked`);
+    const val=sel?sel.value:'—';
+    let color=[62,207,142];
+    if(val==='Regular') color=[245,166,35];
+    if(val==='Malo') color=[224,82,90];
+    doc.setFont('helvetica','normal');
+    const lines=doc.splitTextToSize(label,140);
+    doc.text(lines,12,y);
+    doc.setFont('helvetica','bold');
+    doc.setTextColor(...color);
+    doc.text(val,165,y);
+    doc.setTextColor(20,20,23);
+    y+=lines.length*5+2;
+    y=checkPageBreak(doc,y,15);
+  });
+  y+=2;
+  y=checkPageBreak(doc,y,40);
+  y=pdfSectionTitle(doc,y,'OBSERVACIONES');
+  y=pdfWrapText(doc,y,document.getElementById('spObs').value,186);
+  y=checkPageBreak(doc,y,40);
+  y+=4;
+  pdfSignature(doc,y,'Firma del Supervisor','spFirma');
+  const fname=`Supervision_${currentUser.codigo.replace(/\s/g,'')}_${document.getElementById('spFecha').value}.pdf`;
+  doc.save(fname);
+  saveHistory('Planilla de Supervisión',nombre+' · '+document.getElementById('spFecha').value);
+  toast('✅ PDF generado: '+fname);
+}
+
+// ══ GENERAR PDF: VEHICULAR ══
+function genVehicularPDF(){
+  const nombre=document.getElementById('vhNombre').value.trim();
+  if(!nombre){toast('⚠ Ingresa el nombre del vigilante');return;}
+  const rows=[...document.getElementById('vhRows').children];
+  if(!rows.length){toast('⚠ Agrega al menos un vehículo');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'REVISTA DE PARQUEADERO - RONDA VEHICULAR');
+  y=pdfSectionTitle(doc,y,'DATOS GENERALES');
+  y=pdfField(doc,y,'Vigilante',nombre);
+  y=pdfField(doc,y,'Fecha',document.getElementById('vhFecha').value);
+  y=pdfField(doc,y,'Hora de Ronda',document.getElementById('vhHora').value);
+  y=pdfField(doc,y,'Zona / Nivel',document.getElementById('vhZona').value);
+  y+=2;
+  y=pdfSectionTitle(doc,y,`VEHÍCULOS VERIFICADOS (${rows.length})`);
+
+  rows.forEach((row,i)=>{
+    const inputs=row.querySelectorAll('input[type=text]');
+    const parqueadero=inputs[0].value||'—';
+    const placa=(inputs[1].value||'—').toUpperCase();
+    const estado=row.querySelector('.vh-estado').value;
+    const obs=inputs[2].value||'';
+    const fileInput=row.querySelector('input[type=file]');
+    const photo=fileInput?fileInput.dataset.photo:null;
+
+    y=checkPageBreak(doc,y,photo?38:14);
+    let color=[62,207,142];
+    if(estado.includes('Novedad')) color=[245,166,35];
+    if(estado.includes('No se')) color=[224,82,90];
+
+    doc.setFont('helvetica','bold');doc.setFontSize(9);
+    doc.text(`${i+1}. Parqueadero ${parqueadero} · Placa ${placa}`,12,y);
+    doc.setTextColor(...color);
+    doc.text(estado,165,y);
+    doc.setTextColor(20,20,23);
+    y+=5.5;
+    if(obs){
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+      const lines=doc.splitTextToSize('Obs: '+obs,photo?140:186);
+      doc.text(lines,14,y);
+      y+=lines.length*4.5;
+    }
+    if(photo){
+      try{ doc.addImage(photo,'JPEG',158,y-22,38,28); }catch(e){ try{doc.addImage(photo,'PNG',158,y-22,38,28);}catch(e2){} }
+      y=Math.max(y, y-22+30);
+    }
+    doc.setDrawColor(220,220,220);
+    doc.line(12,y+1,198,y+1);
+    y+=6;
+  });
+
+  y=checkPageBreak(doc,y,40);
+  y+=4;
+  pdfSignature(doc,y,'Firma del Vigilante','vhFirma');
+  const fname=`Vehicular_${currentUser.codigo.replace(/\s/g,'')}_${document.getElementById('vhFecha').value}.pdf`;
+  doc.save(fname);
+  saveHistory('Revista de Parqueadero',nombre+' · '+document.getElementById('vhFecha').value+' · '+rows.length+' vehículos');
+  toast('✅ PDF generado: '+fname);
+}
+
+// ══ FILA INVENTARIO (ADMINISTRACIÓN) ══
+let adRowCount=0;
+function addAdminRow(){
+  adRowCount++;
+  const id='adrow_'+adRowCount;
+  const div=document.createElement('div');
+  div.className='veh-row';
+  div.id=id;
+  div.innerHTML=`
+    <div class="row2">
+      <div class="field"><label>Elemento</label><input type="text" placeholder="Ej: Radio, llaves, lámpara, control acceso…"></div>
+      <div class="field"><label>Cantidad / Estado</label><input type="text" placeholder="Ej: 1 - Buen estado"></div>
+    </div>
+    <button class="btn btn-danger veh-del" onclick="document.getElementById('${id}').remove()">🗑 Eliminar</button>
+  `;
+  document.getElementById('adRows').appendChild(div);
+}
+
+// ══ FILA VISITANTE ══
+let vsRowCount=0;
+function addVisitanteRow(){
+  vsRowCount++;
+  const id='vsrow_'+vsRowCount;
+  const div=document.createElement('div');
+  div.className='veh-row';
+  div.id=id;
+  div.innerHTML=`
+    <div class="row2">
+      <div class="field"><label>Nombre del Visitante</label><input type="text" placeholder="Nombre completo"></div>
+      <div class="field"><label>Documento</label><input type="text" placeholder="N° de identificación"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Destino (apto / oficina / área)</label><input type="text" placeholder="Ej: Apto 502 / Torre 3"></div>
+      <div class="field"><label>Motivo de la Visita</label><input type="text" placeholder="Ej: Visita familiar, domicilio, técnico…"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Hora de Ingreso</label><input type="time"></div>
+      <div class="field"><label>Hora de Salida</label><input type="time"></div>
+    </div>
+    <button class="btn btn-danger veh-del" onclick="document.getElementById('${id}').remove()">🗑 Eliminar Visitante</button>
+  `;
+  document.getElementById('vsRows').appendChild(div);
+}
+
+// ══ GENERAR PDF: ADMINISTRACIÓN DEL PUESTO ══
+function genAdministracionPDF(){
+  const entrega=document.getElementById('adEntrega').value.trim();
+  if(!entrega){toast('⚠ Ingresa el nombre de quien entrega el turno');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'MINUTA DE ADMINISTRACIÓN DEL PUESTO');
+  y=pdfSectionTitle(doc,y,'DATOS GENERALES');
+  y=pdfField(doc,y,'Entrega Turno',entrega);
+  y=pdfField(doc,y,'Recibe Turno',document.getElementById('adRecibe').value);
+  y=pdfField(doc,y,'Fecha',document.getElementById('adFecha').value);
+  y=pdfField(doc,y,'Hora de Entrega',document.getElementById('adHora').value);
+  y+=2;
+  y=pdfSectionTitle(doc,y,'INVENTARIO / ELEMENTOS DEL PUESTO');
+  doc.setFontSize(9);
+  const adRows=[...document.getElementById('adRows').children];
+  if(!adRows.length){
+    doc.setFont('helvetica','normal');doc.text('Sin elementos registrados.',12,y);y+=6;
+  }else{
+    adRows.forEach((row,i)=>{
+      const inputs=row.querySelectorAll('input[type=text]');
+      const elemento=inputs[0].value||'—';
+      const estado=inputs[1].value||'—';
+      doc.setFont('helvetica','normal');
+      doc.text(`${i+1}. ${elemento}  —  ${estado}`,12,y);
+      y+=6;
+      y=checkPageBreak(doc,y,15);
+    });
+  }
+  y+=2;
+  y=checkPageBreak(doc,y,30);
+  y=pdfSectionTitle(doc,y,'COMUNICADOS / PENDIENTES ADMINISTRATIVOS');
+  y=pdfWrapText(doc,y,document.getElementById('adComunicados').value,186);
+  y=checkPageBreak(doc,y,30);
+  y=pdfSectionTitle(doc,y,'OBSERVACIONES GENERALES');
+  y=pdfWrapText(doc,y,document.getElementById('adObs').value,186);
+  y=checkPageBreak(doc,y,50);
+  y+=4;
+  pdfSignature(doc,y,'Quien Entrega','adFirmaEntrega');
+  doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text('Quien Recibe',110,y);
+  const sigRecibe=getSigDataURL('adFirmaRecibe');
+  if(sigRecibe){ doc.addImage(sigRecibe,'PNG',110,y+3,60,22); }
+  doc.line(110,y+27,178,y+27);
+
+  const fname=`Administracion_${currentUser.codigo.replace(/\s/g,'')}_${document.getElementById('adFecha').value}.pdf`;
+  doc.save(fname);
+  saveHistory('Minuta de Administración',entrega+' → '+(document.getElementById('adRecibe').value||'—')+' · '+document.getElementById('adFecha').value);
+  toast('✅ PDF generado: '+fname);
+}
+
+// ══ GENERAR PDF: REGISTRO DE VISITANTES ══
+function genVisitantesPDF(){
+  const nombre=document.getElementById('vsNombre').value.trim();
+  if(!nombre){toast('⚠ Ingresa el nombre del vigilante');return;}
+  const rows=[...document.getElementById('vsRows').children];
+  if(!rows.length){toast('⚠ Agrega al menos un visitante');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'PLANILLA DE REGISTRO DE VISITANTES');
+  y=pdfSectionTitle(doc,y,'DATOS GENERALES');
+  y=pdfField(doc,y,'Vigilante',nombre);
+  y=pdfField(doc,y,'Fecha',document.getElementById('vsFecha').value);
+  y+=2;
+  y=pdfSectionTitle(doc,y,`VISITANTES REGISTRADOS (${rows.length})`);
+
+  rows.forEach((row,i)=>{
+    const txt=row.querySelectorAll('input[type=text]');
+    const times=row.querySelectorAll('input[type=time]');
+    const nombreV=txt[0].value||'—';
+    const doc_id=txt[1].value||'—';
+    const destino=txt[2].value||'—';
+    const motivo=txt[3].value||'—';
+    const entradaH=times[0].value||'—';
+    const salidaH=times[1].value||'—';
+
+    y=checkPageBreak(doc,y,18);
+    doc.setFont('helvetica','bold');doc.setFontSize(9);
+    doc.text(`${i+1}. ${nombreV}  ·  Doc: ${doc_id}`,12,y);
+    y+=5;
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+    doc.text(`Destino: ${destino}   |   Motivo: ${motivo}`,14,y);
+    y+=5;
+    doc.text(`Hora ingreso: ${entradaH}     Hora salida: ${salidaH}`,14,y);
+    y+=4;
+    doc.setDrawColor(220,220,220);
+    doc.line(12,y+1,198,y+1);
+    y+=6;
+  });
+
+  y=checkPageBreak(doc,y,40);
+  y+=4;
+  pdfSignature(doc,y,'Firma del Vigilante','vsFirma');
+  const fname=`Visitantes_${currentUser.codigo.replace(/\s/g,'')}_${document.getElementById('vsFecha').value}.pdf`;
+  doc.save(fname);
+  saveHistory('Registro de Visitantes',nombre+' · '+document.getElementById('vsFecha').value+' · '+rows.length+' visitantes');
+  toast('✅ PDF generado: '+fname);
+}
+</script>
+</body>
+</html>
